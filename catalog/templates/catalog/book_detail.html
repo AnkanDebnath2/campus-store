@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ book.title }} | Campus Bookstore{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'catalog/css/home.css' %}">{% endblock %}
+
+{% block content %}
+<div class="page-shell narrow-shell">
+  <header class="site-header"><a class="brand" href="{% url 'catalog:home' %}">Campus Bookstore</a><nav class="header-actions" aria-label="Account navigation"><a href="{% url 'catalog:my_orders' %}">My Orders</a><a href="{% url 'accounts:logout' %}">Logout</a></nav></header>
+  <main class="content-main">
+    {% if messages %}{% for message in messages %}<p class="message {{ message.tags }}">{{ message }}</p>{% endfor %}{% endif %}
+    <section class="detail-card card">
+      {% if book.cover_image %}
+      <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" class="book-cover">
+      {% else %}
+      <img src="https://placehold.co/300x400/e6f1fb/1d4ed8?text={{ book.title|urlencode }}" alt="{{ book.title }}" class="book-cover">
+      {% endif %}
+      <div><span class="badge">{{ book.category.name|default:'General' }}</span><h1>{{ book.title }}</h1><p class="book-author">{{ book.author.name }}</p><p class="book-price">${{ book.price }}</p><p class="description">{{ book.description|default:'No description has been added yet.' }}</p><form method="get" action="{% url 'catalog:place_order' book.id %}"><button class="btn btn-primary" type="submit">Order this book</button></form></div>
+    </section>
+    <section class="detail-section"><h2>Student Reviews</h2>{% for review in reviews %}<article class="review-card"><div class="review-top"><span class="reviewer-name">{{ review.reviewer_name }}</span><time class="review-date relative-time" datetime="{{ review.created_at|date:'c' }}">{{ review.created_at|date:'M d, Y' }}</time></div><span class="stars" data-rating="{{ review.rating }}" aria-label="{{ review.rating }} out of 5 stars"></span><p class="review-text">{{ review.comment }}</p></article>{% empty %}<p class="empty-state">No reviews yet — be the first to review this book!</p>{% endfor %}</section>
+    <section class="detail-section review-form-card"><h2>Write a review</h2><form method="post" action="{% url 'catalog:submit_review' book.id %}" class="review-form">{% csrf_token %}<div class="rating-field"><label>Rate this book</label><div class="star-picker" role="group" aria-label="Choose a rating"><button type="button" data-rating="1" aria-label="1 star">&#9733;</button><button type="button" data-rating="2" aria-label="2 stars">&#9733;</button><button type="button" data-rating="3" aria-label="3 stars">&#9733;</button><button type="button" data-rating="4" aria-label="4 stars">&#9733;</button><button type="button" data-rating="5" aria-label="5 stars">&#9733;</button></div><span class="sr-only">{{ review_form.rating }}</span>{{ review_form.rating.errors }}</div><label for="{{ review_form.comment.id_for_label }}">Your review</label>{{ review_form.comment }}{{ review_form.comment.errors }}<button class="btn btn-primary" type="submit">Submit review</button></form></section>
+  </main>
+</div>
+<script>
+  document.querySelectorAll('.stars').forEach((star) => { const rating = Number(star.dataset.rating || 0); star.textContent = '★'.repeat(rating) + '☆'.repeat(5 - rating); });
+  document.querySelectorAll('.star-picker').forEach((picker) => { const select = picker.parentElement.querySelector('select'); const paint = (rating) => picker.querySelectorAll('button').forEach((button) => button.classList.toggle('is-selected', Number(button.dataset.rating) <= rating)); paint(Number(select.value || 0)); picker.querySelectorAll('button').forEach((button) => button.addEventListener('click', () => { select.value = button.dataset.rating; paint(Number(button.dataset.rating)); select.dispatchEvent(new Event('change', { bubbles: true })); })); });
+  document.querySelectorAll('.relative-time').forEach((time) => { const seconds = Math.max(0, Math.round((Date.now() - new Date(time.dateTime).getTime()) / 1000)); const units = [[31536000, 'year'], [2592000, 'month'], [86400, 'day'], [3600, 'hour'], [60, 'minute']]; const match = units.find(([size]) => seconds >= size); time.textContent = match ? `${Math.floor(seconds / match[0])} ${match[1]}${Math.floor(seconds / match[0]) === 1 ? '' : 's'} ago` : 'Just now'; });
+</script>
+{% endblock %}

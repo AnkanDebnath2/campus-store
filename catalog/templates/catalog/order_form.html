@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Place Order | Campus Bookstore{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'catalog/css/home.css' %}">{% endblock %}
+
+{% block content %}
+<div class="page-shell narrow-shell"><header class="site-header"><a class="brand" href="{% url 'catalog:home' %}">Campus Bookstore</a><nav class="header-actions"><a href="{% url 'catalog:book_detail' book.id %}">Back to book</a></nav></header><main class="content-main"><section class="detail-section review-form-card"><p class="eyebrow">Secure order</p><h1>Place your order</h1><p class="muted">{{ book.title }} is pre-selected. You can choose another catalog book if needed.</p><form method="post" class="order-form">{% csrf_token %}{{ form.as_p }}<button class="btn btn-primary" type="submit">Place order</button></form></section></main></div>
+{% endblock %}

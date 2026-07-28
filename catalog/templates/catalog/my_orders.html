@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% load static template_extras %}
+
+{% block title %}My Orders | Campus Bookstore{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'catalog/css/home.css' %}">{% endblock %}
+
+{% block content %}
+<div class="page-shell narrow-shell"><header class="site-header"><a class="brand" href="{% url 'catalog:home' %}">Campus Bookstore</a><nav class="header-actions"><a href="{% url 'catalog:home' %}">Catalog</a></nav></header><main class="content-main"><section class="detail-section"><h1>My Orders</h1>{% for order in orders %}<article class="review-card"><h3>{{ books_by_id|get_item:order.book_id|default:'Book no longer in catalog' }}</h3><p class="muted">Quantity: {{ order.quantity }} · Total: ${{ order.total }}</p><p class="review-date">Placed {{ order.created_at|date:'M d, Y, P' }}</p></article>{% empty %}<p class="empty-state">You have not placed any orders yet.</p>{% endfor %}</section></main></div>
+{% endblock %}

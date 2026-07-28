@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{% if active_tab == 'signup' %}Sign Up{% else %}Login{% endif %} | Campus Bookstore{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'accounts/css/login.css' %}">{% endblock %}
+
+{% block content %}
+<main class="auth-shell">
+  <section class="auth-page card">
+    <div class="auth-card">
+      <div class="auth-header"><p class="eyebrow">Campus Bookstore</p><h1>Sign in or create your account</h1></div>
+      <div class="tab-switcher" role="tablist"><button class="tab-button {% if active_tab != 'signup' %}is-active{% endif %}" id="loginTab" aria-controls="loginPanel" type="button">Login</button><button class="tab-button {% if active_tab == 'signup' %}is-active{% endif %}" id="signupTab" aria-controls="signupPanel" type="button">Sign Up</button></div>
+      {% if messages %}<div class="message-box">{% for message in messages %}<div class="message {{ message.tags }}">{{ message }}</div>{% endfor %}</div>{% endif %}
+      <div class="form-panel {% if active_tab == 'signup' %}hidden{% endif %}" id="loginPanel"><form class="auth-form" method="post" action="{% url 'accounts:login' %}">{% csrf_token %}<input type="hidden" name="form_type" value="login">{{ login_form.non_field_errors }}<label for="id_username">Username</label>{{ login_form.username }}{{ login_form.username.errors }}<label for="id_password">Password</label>{{ login_form.password }}{{ login_form.password.errors }}<label class="checkbox-label"><input type="checkbox" name="remember">Remember me</label><button type="submit" class="btn btn-primary">Login</button></form></div>
+      <div class="form-panel {% if active_tab != 'signup' %}hidden{% endif %}" id="signupPanel"><form class="auth-form" method="post" action="{% url 'accounts:signup' %}">{% csrf_token %}<input type="hidden" name="form_type" value="signup">{{ signup_form.non_field_errors }}<label for="id_username">Username</label>{{ signup_form.username }}{{ signup_form.username.errors }}<label for="id_email">Email</label>{{ signup_form.email }}{{ signup_form.email.errors }}<label for="id_password1">Password</label>{{ signup_form.password1 }}{{ signup_form.password1.errors }}<label for="id_password2">Confirm Password</label>{{ signup_form.password2 }}{{ signup_form.password2.errors }}<button type="submit" class="btn btn-primary">Create account</button></form></div>
+      <div class="card-footer"><a href="{% url 'catalog:home' %}">Back to homepage</a></div>
+    </div>
+  </section>
+</main>
+<script>
+  const loginTab = document.getElementById('loginTab'); const signupTab = document.getElementById('signupTab'); const loginPanel = document.getElementById('loginPanel'); const signupPanel = document.getElementById('signupPanel');
+  loginTab.addEventListener('click', () => { loginTab.classList.add('is-active'); signupTab.classList.remove('is-active'); loginPanel.classList.remove('hidden'); signupPanel.classList.add('hidden'); });
+  signupTab.addEventListener('click', () => { signupTab.classList.add('is-active'); loginTab.classList.remove('is-active'); signupPanel.classList.remove('hidden'); loginPanel.classList.add('hidden'); });
+</script>
+{% endblock %}

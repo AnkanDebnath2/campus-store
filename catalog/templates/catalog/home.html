@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% load static template_extras %}
+
+{% block title %}Campus Bookstore | Catalog{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'catalog/css/home.css' %}">{% endblock %}
+
+{% block content %}
+<div class="page-shell">
+  <header class="site-header">
+    <a class="brand" href="{% url 'catalog:home' %}">Campus Bookstore</a>
+    <nav class="header-actions" aria-label="Account navigation">
+      <span>Welcome, {{ request.user.username }}</span>
+      <a href="{% url 'catalog:my_orders' %}">My Orders</a>
+      <a href="{% url 'accounts:logout' %}">Logout</a>
+    </nav>
+  </header>
+
+  <main class="content-main">
+    {% if messages %}{% for message in messages %}<p class="message {{ message.tags }}">{{ message }}</p>{% endfor %}{% endif %}
+    <section class="hero-section">
+      <p class="eyebrow">Academic essentials</p>
+      <h1>Find the textbooks and student reviews you need for every semester.</h1>
+      <p>Browse campus-ready books, leave feedback, and place an order without leaving the catalog.</p>
+    </section>
+
+    <section>
+      <div class="section-header"><h2>Required Textbooks</h2></div>
+      <div class="book-grid">
+        {% for book in books %}
+        <article class="book-card card is-interactive">
+          <a class="book-card-link" href="{% url 'catalog:book_detail' book.id %}">
+            {% if book.cover_image %}
+            <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" class="book-cover">
+            {% else %}
+            <img src="https://placehold.co/300x400/e6f1fb/1d4ed8?text={{ book.title|urlencode }}" alt="{{ book.title }}" class="book-cover">
+            {% endif %}
+            <div class="book-content">
+              <div class="book-meta">
+                <span class="badge">{{ book.category.name|default:'General' }}</span>
+                <h3>{{ book.title }}</h3>
+                <p class="book-author">{{ book.author.name }}</p>
+                <p class="book-price">${{ book.price }}</p>
+              </div>
+            </div>
+          </a>
+          <div class="book-actions">
+            <form method="get" action="{% url 'catalog:place_order' book.id %}"><button class="btn btn-primary" type="submit">Buy / Place order</button></form>
+          </div>
+          <section class="book-reviews">
+            <h4>Reviews</h4>
+            {% with book_reviews=reviews_by_book|get_item:book.id %}
+              {% for review in book_reviews %}
+              <article class="inline-review">
+                <span class="stars" data-rating="{{ review.rating }}" aria-label="{{ review.rating }} out of 5 stars"></span>
+                <p>{{ review.comment }}</p>
+                <small><span class="reviewer-name">{{ review.reviewer_name }}</span> · <time class="relative-time" datetime="{{ review.created_at|date:'c' }}">{{ review.created_at|date:'M d, Y' }}</time></small>
+              </article>
+              {% empty %}<p class="empty-state">No reviews yet — be the first to review this book!</p>{% endfor %}
+            {% endwith %}
+            {% with review_form=review_forms|get_item:book.id %}
+            <form method="post" action="{% url 'catalog:submit_review' book.id %}" class="review-form review-form-card">
+              {% csrf_token %}<input type="hidden" name="next" value="home">
+              <div class="rating-field"><label>Rate this book</label><div class="star-picker" role="group" aria-label="Choose a rating"><button type="button" data-rating="1" aria-label="1 star">&#9733;</button><button type="button" data-rating="2" aria-label="2 stars">&#9733;</button><button type="button" data-rating="3" aria-label="3 stars">&#9733;</button><button type="button" data-rating="4" aria-label="4 stars">&#9733;</button><button type="button" data-rating="5" aria-label="5 stars">&#9733;</button></div><span class="sr-only">{{ review_form.rating }}</span>{{ review_form.rating.errors }}</div>
+              <label for="{{ review_form.comment.id_for_label }}">Your review</label>{{ review_form.comment }}{{ review_form.comment.errors }}
+              <button class="btn btn-primary" type="submit">Submit review</button>
+            </form>
+            {% endwith %}
+          </section>
+        </article>
+        {% empty %}<p class="empty-state">No books have been added yet.</p>{% endfor %}
+      </div>
+    </section>
+
+    <section>
+      <div class="section-header"><h2>Recently Viewed</h2></div>
+      <div class="recently-viewed-strip">
+        {% for recent in recent_books %}
+        <a href="{% url 'catalog:book_detail' recent.book.id %}" class="recently-viewed-card">
+          {{ recent.book.title }}
+        </a>
+        {% empty %}<p class="empty-state">No recently viewed books yet.</p>{% endfor %}
+      </div>
+    </section>
+  </main>
+</div>
+<script>
+  document.querySelectorAll('.stars').forEach((star) => { const rating = Number(star.dataset.rating || 0); star.textContent = '★'.repeat(rating) + '☆'.repeat(5 - rating); });
+  document.querySelectorAll('.star-picker').forEach((picker) => { const select = picker.parentElement.querySelector('select'); const paint = (rating) => picker.querySelectorAll('button').forEach((button) => button.classList.toggle('is-selected', Number(button.dataset.rating) <= rating)); paint(Number(select.value || 0)); picker.querySelectorAll('button').forEach((button) => button.addEventListener('click', () => { select.value = button.dataset.rating; paint(Number(button.dataset.rating)); select.dispatchEvent(new Event('change', { bubbles: true })); })); });
+  document.querySelectorAll('.relative-time').forEach((time) => { const seconds = Math.max(0, Math.round((Date.now() - new Date(time.dateTime).getTime()) / 1000)); const units = [[31536000, 'year'], [2592000, 'month'], [86400, 'day'], [3600, 'hour'], [60, 'minute']]; const match = units.find(([size]) => seconds >= size); time.textContent = match ? `${Math.floor(seconds / match[0])} ${match[1]}${Math.floor(seconds / match[0]) === 1 ? '' : 's'} ago` : 'Just now'; });
+</script>
+{% endblock %}
