@@ -74,9 +74,9 @@
     <section>
       <div class="section-header"><h2>Recently Viewed</h2></div>
       <div class="recently-viewed-strip">
-        {% for recent in recent_books %}
-        <a href="{% url 'catalog:book_detail' recent.book.id %}" class="recently-viewed-card">
-          {{ recent.book.title }}
+        {% for book in recently_viewed %}
+        <a href="{% url 'catalog:book_detail' book.id %}" class="recently-viewed-card">
+          {{ book.title }}
         </a>
         {% empty %}<p class="empty-state">No recently viewed books yet.</p>{% endfor %}
       </div>

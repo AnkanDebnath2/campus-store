@@ -6,3 +6,5 @@ pymongo
 python-decouple
 certifi
 Pillow
+gunicorn
+whitenoise

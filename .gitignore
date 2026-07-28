@@ -1,7 +1,9 @@
 # Environment variables / secrets
 .env
-*.env
+.env.*
+!.env.example
 venv/
+.venv/
 
 # SQLite databases
 *.sqlite3
@@ -11,6 +13,13 @@ auth.sqlite3
 __pycache__/
 *.py[cod]
 *$py.class
+
+# Generated local/deployment files
+staticfiles/
+media/
+logs/
+backups/
+*.log
 
 # IDE & OS files
 .vscode/

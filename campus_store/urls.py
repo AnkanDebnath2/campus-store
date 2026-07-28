@@ -17,9 +17,16 @@ Including another URLconf
 from django.contrib import admin
 from django.conf import settings
 from django.conf.urls.static import static
+from django.http import JsonResponse
 from django.urls import path, include
 
+
+def health_check(request):
+    """Fast, dependency-free Render health check."""
+    return JsonResponse({'status': 'ok'})
+
 urlpatterns = [
+    path('health/', health_check, name='health_check'),
     path('admin/', admin.site.urls),
     path('', include('catalog.urls')),
     path('', include('accounts.urls')),

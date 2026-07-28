@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+import os
 from pathlib import Path
 from decouple import config
 
@@ -22,13 +23,30 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = config('DJANGO_SECRET_KEY', default='django-insecure-6ij-rsld#ihb8unue_d^gdhyol*fq7sqd6%=ez=yqi)_e456!%')
+SECRET_KEY = config('DJANGO_SECRET_KEY')
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config('DEBUG', default=True, cast=bool)
+DEBUG = config('DEBUG', default=False, cast=bool)
 
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='127.0.0.1,localhost,testserver', cast=lambda value: [host.strip() for host in value.split(',') if host.strip()])
+
+def _csv_environment(name):
+    return [item.strip() for item in config(name, default='').split(',') if item.strip()]
+
+
+_render_hostname = os.environ.get('RENDER_EXTERNAL_HOSTNAME', '').strip()
+ALLOWED_HOSTS = list(dict.fromkeys([
+    '127.0.0.1',
+    'localhost',
+    'testserver',
+    *_csv_environment('ALLOWED_HOSTS'),
+    *([_render_hostname] if _render_hostname else []),
+]))
+
+CSRF_TRUSTED_ORIGINS = _csv_environment('CSRF_TRUSTED_ORIGINS')
+if _render_hostname:
+    CSRF_TRUSTED_ORIGINS.append(f'https://{_render_hostname}')
+CSRF_TRUSTED_ORIGINS = list(dict.fromkeys(CSRF_TRUSTED_ORIGINS))
 
 
 # Application definition
@@ -53,6 +71,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -87,30 +106,38 @@ WSGI_APPLICATION = 'campus_store.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': config('MYSQL_NAME', default='catalog_db'),
-        'USER': config('MYSQL_USER', default='root'),
-        'PASSWORD': config('MYSQL_PASSWORD', default='your_mysql_password'),
-        'HOST': config('MYSQL_HOST', default='localhost'),
-        'PORT': config('MYSQL_PORT', default='3306'),
+        'NAME': config('MYSQL_NAME'),
+        'USER': config('MYSQL_USER'),
+        'PASSWORD': config('MYSQL_PASSWORD'),
+        'HOST': config('MYSQL_HOST'),
+        'PORT': config('MYSQL_PORT'),
+        'OPTIONS': {'charset': 'utf8mb4'},
     },
     'orders_db': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': config('POSTGRES_NAME', default='neondb'),
-        'USER': config('POSTGRES_USER', default='your_neon_user'),
-        'PASSWORD': config('POSTGRES_PASSWORD', default='your_neon_password'),
-        'HOST': config('POSTGRES_HOST', default='your_neon_host'),
-        'PORT': config('POSTGRES_PORT', default='5432'),
+        'NAME': config('POSTGRES_NAME'),
+        'USER': config('POSTGRES_USER'),
+        'PASSWORD': config('POSTGRES_PASSWORD'),
+        'HOST': config('POSTGRES_HOST'),
+        'PORT': config('POSTGRES_PORT'),
         'OPTIONS': {
             'sslmode': 'require',
+        },
+        'TEST': {
+            'DEPENDENCIES': [],
         },
     },
     'auth_db': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': config('MYSQL_AUTH_NAME', default='auth_db'),
-        'USER': config('MYSQL_USER', default='root'),
-        'PASSWORD': config('MYSQL_PASSWORD', default='your_mysql_password'),
-        'HOST': config('MYSQL_HOST', default='localhost'),
-        'PORT': config('MYSQL_PORT', default='3306'),
+        'NAME': config('MYSQL_AUTH_NAME'),
+        'USER': config('MYSQL_USER'),
+        'PASSWORD': config('MYSQL_PASSWORD'),
+        'HOST': config('MYSQL_HOST'),
+        'PORT': config('MYSQL_PORT'),
+        'OPTIONS': {'charset': 'utf8mb4'},
+        'TEST': {
+            'DEPENDENCIES': [],
+        },
     },
 }
 
@@ -153,9 +180,34 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+STORAGES = {
+    'staticfiles': {
+        'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage',
+    },
+}
 
 MEDIA_URL = '/media/'
+# Render's local filesystem is ephemeral. Use external object storage before relying
+# on admin-uploaded book covers in production.
 MEDIA_ROOT = BASE_DIR / 'media'
+
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = not DEBUG
+SECURE_SSL_REDIRECT = config(
+    'SECURE_SSL_REDIRECT',
+    default=bool(_render_hostname),
+    cast=bool,
+)
+SECURE_HSTS_SECONDS = config(
+    'SECURE_HSTS_SECONDS',
+    default=31536000 if _render_hostname else 0,
+    cast=int,
+)
+SECURE_HSTS_INCLUDE_SUBDOMAINS = bool(_render_hostname)
+SECURE_HSTS_PRELOAD = bool(_render_hostname)
+SECURE_CONTENT_TYPE_NOSNIFF = True
 
 LOGIN_URL = 'accounts:login'
 LOGIN_REDIRECT_URL = 'catalog:home'
@@ -165,3 +217,21 @@ LOGOUT_REDIRECT_URL = 'accounts:login'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+        'activity': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
+}
