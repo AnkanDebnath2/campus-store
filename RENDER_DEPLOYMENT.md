@@ -43,6 +43,15 @@ Atlas user has `readWrite` access to the configured activity database.
 Book covers uploaded through Django Admin are stored on Render's ephemeral filesystem. Use
 external object storage before relying on uploaded media in production.
 
+## Uploaded media storage
+
+`FileSystemStorage` is configured as Django's default storage backend so Book cover-image
+uploads no longer fail with `InvalidStorageError`. Render's default filesystem is ephemeral,
+however: files uploaded into `MEDIA_ROOT` can disappear after a redeployment or restart.
+For permanent production uploads, configure Cloudinary, Amazon S3, another object-storage
+provider, or a paid Render persistent disk. Database image-path values can remain even after
+the physical uploaded files disappear.
+
 ## URLs to test
 
 - `/`
