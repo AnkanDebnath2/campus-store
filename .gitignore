@@ -16,7 +16,7 @@ __pycache__/
 
 # Generated local/deployment files
 staticfiles/
-media/
+#media/
 logs/
 backups/
 *.log
