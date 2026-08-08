@@ -54,3 +54,5 @@
 @media (max-width: 760px) { .page-shell { padding: var(--space-2); } .header-actions { flex-wrap: wrap; gap: var(--space-2); } .hero-section { padding: var(--space-3); } .detail-card { grid-template-columns: 1fr; } .detail-card .cover-placeholder { max-width: 280px; } }
 @media (max-width: 640px) { .book-grid { grid-template-columns: 1fr; } }
 @media (max-width: 420px) { .content-main { gap: var(--space-3); padding: var(--space-3) 0; } .hero-section { padding: var(--space-2); } }
+
+
