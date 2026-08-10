@@ -266,6 +266,8 @@ DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
 
+
+
 from django.contrib.contenttypes.management import create_contenttypes
 from django.db.models.signals import post_migrate
 
