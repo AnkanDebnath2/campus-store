@@ -9,4 +9,3 @@ Pillow
 gunicorn
 whitenoise
 django-cloudinary-storage
-pip freeze > requirements.txt
