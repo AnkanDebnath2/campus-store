@@ -57,11 +57,11 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    'cloudinary_storage',         # staticfiles এর আগে থাকবে
     'django.contrib.staticfiles',
+    'cloudinary',
 
     # Third-party apps
-    'cloudinary_storage',
-    'cloudinary',
     'rest_framework',
 
     # Local apps
@@ -113,7 +113,13 @@ DATABASES = {
         'PASSWORD': config('MYSQL_PASSWORD'),
         'HOST': config('MYSQL_HOST'),
         'PORT': config('MYSQL_PORT'),
-        'OPTIONS': {'charset': 'utf8mb4'},
+        'OPTIONS': {
+            'charset': 'utf8mb4',
+            'ssl': {
+                'check_hostname': False,
+                'verify_mode': False,
+            },
+        },
     },
     'orders_db': {
         'ENGINE': 'django.db.backends.postgresql',
@@ -136,7 +142,13 @@ DATABASES = {
         'PASSWORD': config('MYSQL_PASSWORD'),
         'HOST': config('MYSQL_HOST'),
         'PORT': config('MYSQL_PORT'),
-        'OPTIONS': {'charset': 'utf8mb4'},
+        'OPTIONS': {
+            'charset': 'utf8mb4',
+            'ssl': {
+                'check_hostname': False,
+                'verify_mode': False,
+            },
+        },
         'TEST': {
             'DEPENDENCIES': [],
         },
@@ -193,8 +205,7 @@ STORAGES = {
 }
 
 MEDIA_URL = '/media/'
-# Render's local filesystem is ephemeral. Use external object storage before relying
-# on admin-uploaded book covers in production.
+
 MEDIA_ROOT = BASE_DIR / 'media'
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
@@ -245,6 +256,18 @@ CLOUDINARY_STORAGE = {
     'CLOUD_NAME': config('CLOUDINARY_CLOUD_NAME', default=''),
     'API_KEY': config('CLOUDINARY_API_KEY', default=''),
     'API_SECRET': config('CLOUDINARY_API_SECRET', default=''),
+
+    'CLOUD_NAME': 'your_cloud_name',
+    'API_KEY': 'your_api_key',
+    'API_SECRET': 'your_api_secret',
 }
 
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+
+
+
+
+from django.contrib.contenttypes.management import create_contenttypes
+from django.db.models.signals import post_migrate
+
+post_migrate.disconnect(create_contenttypes)

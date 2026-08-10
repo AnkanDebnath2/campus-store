@@ -92,3 +92,14 @@ a { color: inherit; }
 .errorlist { margin-top: var(--space-1); color: var(--color-danger); font-size: 12px; list-style: none; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
 @media (max-width: 600px) { .site-header { flex-wrap: wrap; gap: var(--space-1); padding: var(--space-2); } }
+
+
+
+.book-card img,
+.card-img-top,
+.book-cover img,
+img {
+    max-width: 100% !important;
+    height: 240px !important;
+    object-fit: contain !important;
+}

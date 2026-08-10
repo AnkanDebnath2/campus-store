@@ -11,9 +11,9 @@
     {% if messages %}{% for message in messages %}<p class="message {{ message.tags }}">{{ message }}</p>{% endfor %}{% endif %}
     <section class="detail-card card">
       {% if book.cover_image %}
-      <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" class="book-cover">
+      <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" style="width: 300px !important; max-width: 100% !important; height: 380px !important; object-fit: contain !important; background-color: #f8f9fa !important; padding: 10px !important; border-radius: 8px !important; box-sizing: border-box !important;">
       {% else %}
-      <img src="https://placehold.co/300x400/e6f1fb/1d4ed8?text={{ book.title|urlencode }}" alt="{{ book.title }}" class="book-cover">
+      <img src="https://placehold.co/300x400/e6f1fb/1d4ed8?text={{ book.title|urlencode }}" alt="{{ book.title }}" style="width: 300px !important; max-width: 100% !important; height: 380px !important; object-fit: contain !important; background-color: #f8f9fa !important; padding: 10px !important; border-radius: 8px !important; box-sizing: border-box !important;">
       {% endif %}
       <div><span class="badge">{{ book.category.name|default:'General' }}</span><h1>{{ book.title }}</h1><p class="book-author">{{ book.author.name }}</p><p class="book-price">${{ book.price }}</p><p class="description">{{ book.description|default:'No description has been added yet.' }}</p><form method="get" action="{% url 'catalog:place_order' book.id %}"><button class="btn btn-primary" type="submit">Order this book</button></form></div>
     </section>
