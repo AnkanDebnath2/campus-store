@@ -268,8 +268,3 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
 
 
-from django.contrib.contenttypes.management import create_contenttypes
-from django.db.models.signals import post_migrate
-
-
-post_migrate.disconnect(create_contenttypes)
